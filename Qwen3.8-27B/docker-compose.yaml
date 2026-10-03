@@ -31,11 +31,16 @@ services:
       - --gpu-memory-utilization
       - "0.75"
       - --trust-remote-code
-      
-      # Qwen3 reasoning
-      # - --enable-reasoning   # Fail, en los logs aparece que este command no existe
-      # - --reasoning-parser
-      # - qwen3
+      # ── Razonamiento (thinking) ──────────────────────────────────────────────
+      # NOTA: en vLLM reciente NO existe --enable-reasoning; basta el parser.
+      # Separa el <think>...</think> de Qwen en el campo reasoning_content de la API.
+      - --reasoning-parser
+      - qwen3
+      # ── Tool calling (como en server0) ───────────────────────────────────────
+      # Qwen usa formato Hermes para las llamadas a herramientas.
+      - --enable-auto-tool-choice
+      - --tool-call-parser
+      - hermes
     ports:
       - "8002:8000"
     # Acceso a la iGPU por ROCm (equivalente al bloque nvidia de server0):
