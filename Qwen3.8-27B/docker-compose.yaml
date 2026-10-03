@@ -31,6 +31,11 @@ services:
       - --gpu-memory-utilization
       - "0.75"
       - --trust-remote-code
+      
+      # Qwen3 reasoning
+      - --enable-reasoning
+      - --reasoning-parser
+      - qwen3
     ports:
       - "8002:8000"
     # Acceso a la iGPU por ROCm (equivalente al bloque nvidia de server0):
