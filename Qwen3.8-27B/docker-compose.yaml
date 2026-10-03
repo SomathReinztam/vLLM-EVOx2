@@ -33,9 +33,9 @@ services:
       - --trust-remote-code
       
       # Qwen3 reasoning
-      - --enable-reasoning
-      - --reasoning-parser
-      - qwen3
+      # - --enable-reasoning   # Fail, en los logs aparece que este command no existe
+      # - --reasoning-parser
+      # - qwen3
     ports:
       - "8002:8000"
     # Acceso a la iGPU por ROCm (equivalente al bloque nvidia de server0):
