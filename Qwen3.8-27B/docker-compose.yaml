@@ -1,0 +1,64 @@
+services:
+
+  # ── LLM: Qwen3.8-27B en la iGPU Radeon 8060S (gfx1151) ───────────────────────
+  # Memoria unificada (GTT 128 GB) → una sola GPU, tensor-parallel-size 1.
+  # SIN FP8: RDNA 3.5 (gfx1151) no tiene FP8 por hardware. Corremos BF16; un 27B
+  # ocupa ~54 GB de pesos y cabe holgado en los 128 GB. vLLM hace continuous
+  # batching para servir varias peticiones concurrentes.
+  # Puerto externo 8002 (como en server0). Modelo servido como "qwen3-27b".
+  # ─────────────────────────────────────────────────────────────────────────────
+  vllm-llm:
+    image: docker.io/kyuz0/vllm-therock-gfx1151:latest
+    container_name: vllm-qwen3-27b
+    entrypoint: ["vllm", "serve"]
+    command:
+      - Qwen/Qwen3.8-27B
+      - --served-model-name
+      - qwen3-27b
+      - --host
+      - "0.0.0.0"
+      - --port
+      - "8000"
+      - --tensor-parallel-size
+      - "1"
+      - --max-model-len
+      - "32768"
+      - --max-num-seqs
+      - "4"
+      # En memoria unificada este valor es delicado; empezamos conservador y
+      # ajustamos según los logs de arranque.
+      - --gpu-memory-utilization
+      - "0.90"
+      - --trust-remote-code
+    ports:
+      - "8002:8000"
+    # Acceso a la iGPU por ROCm (equivalente al bloque nvidia de server0):
+    devices:
+      - /dev/kfd
+      - /dev/dri
+    group_add:
+      - video
+      - render
+    security_opt:
+      - seccomp:unconfined
+    ipc: host
+    shm_size: "16g"
+    # Token HF (opcional aquí: Qwen es abierto). Se usa para modelos gated.
+    env_file:
+      - path: ../.env
+        required: false
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 40
+      start_period: 600s
+    restart: unless-stopped
+
+# Caché de modelos compartida entre TODAS las carpetas de modelos (se descarga
+# cada modelo una sola vez). Volumen con nombre fijo, independiente del proyecto.
+volumes:
+  hf-cache:
+    name: vllm-hf-cache

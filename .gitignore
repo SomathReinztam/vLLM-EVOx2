@@ -1,0 +1,6 @@
+# Secretos: token de HuggingFace
+.env
+
+# Temporales
+*.log
+__pycache__/
