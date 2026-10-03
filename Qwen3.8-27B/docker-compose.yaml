@@ -25,10 +25,11 @@ services:
       - "32768"
       - --max-num-seqs
       - "4"
-      # En memoria unificada este valor es delicado; empezamos conservador y
-      # ajustamos según los logs de arranque.
+      # En memoria unificada este valor es delicado: vLLM "ve" 128 GB pero la RAM
+      # es compartida con el sistema. 0.75 → pesos (~51 GiB) + KV (~42 GiB) deja
+      # ~28 GiB de margen. Subir con cuidado si quieres más KV-cache.
       - --gpu-memory-utilization
-      - "0.90"
+      - "0.75"
       - --trust-remote-code
     ports:
       - "8002:8000"
@@ -43,6 +44,10 @@ services:
       - seccomp:unconfined
     ipc: host
     shm_size: "16g"
+    environment:
+      # Evita el OOM del bloque contiguo de KV-cache en memoria unificada (GTT):
+      # usa segmentos expansibles en vez de una sola reserva gigante.
+      - "PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True"
     # Token HF (opcional aquí: Qwen es abierto). Se usa para modelos gated.
     env_file:
       - path: ../.env
