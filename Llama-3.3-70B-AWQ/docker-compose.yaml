@@ -37,7 +37,7 @@ services:
       - --tool-call-parser
       - llama3_json
     ports:
-      - "8006:8000"
+      - "8000:8000"
     devices:
       - /dev/kfd
       - /dev/dri

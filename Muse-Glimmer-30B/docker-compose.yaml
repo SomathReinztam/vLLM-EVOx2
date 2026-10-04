@@ -39,7 +39,7 @@ services:
       - --generation-config
       - auto
     ports:
-      - "8004:8000"
+      - "8000:8000"
     devices:
       - /dev/kfd
       - /dev/dri

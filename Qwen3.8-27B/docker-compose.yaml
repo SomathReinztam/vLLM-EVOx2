@@ -42,7 +42,7 @@ services:
       - --tool-call-parser
       - hermes
     ports:
-      - "8002:8000"
+      - "8000:8000"
     # Acceso a la iGPU por ROCm (equivalente al bloque nvidia de server0):
     devices:
       - /dev/kfd

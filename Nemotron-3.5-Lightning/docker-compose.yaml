@@ -36,7 +36,7 @@ services:
       - --reasoning-parser
       - nemotron_v3
     ports:
-      - "8007:8000"
+      - "8000:8000"
     devices:
       - /dev/kfd
       - /dev/dri

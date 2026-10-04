@@ -46,7 +46,7 @@ services:
       - --default-chat-template-kwargs
       - '{"enable_thinking": true}'
     ports:
-      - "8003:8000"
+      - "8000:8000"
     devices:
       - /dev/kfd
       - /dev/dri

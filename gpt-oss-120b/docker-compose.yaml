@@ -37,7 +37,7 @@ services:
       # - --tool-call-parser
       # - openai
     ports:
-      - "8005:8000"
+      - "8000:8000"
     devices:
       - /dev/kfd
       - /dev/dri
