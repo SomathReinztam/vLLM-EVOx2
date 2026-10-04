@@ -75,23 +75,31 @@ docker compose down
   encoder). Si pasa, se desactiva esa modalidad con `--limit-mm-per-prompt` y el
   modelo queda de solo texto.
 
-## Estado multimodal por modelo
+## Estado de los modelos
 
-| Modelo | Multimodal en la EVO |
-|--------|----------------------|
-| Qwen3.8-27B | ✅ Texto + **imagen** (su ViT sí corre) |
-| **gemma-4-31B** | ⚠️ **Solo texto** — la torre de visión (imagen Y video) crashea en gfx1151; se desactiva con `--limit-mm-per-prompt '{"image":0,"video":0}'` |
-| Muse-Glimmer-30B | ❓ Por confirmar |
-
-## Tabla de puertos
-
-| Modelo | Puerto host | `served-model-name` |
-|--------|-------------|---------------------|
-| Qwen3.8-27B | 8002 | `qwen3-27b` |
-| gemma-4-31B | 8003 | `gemma-4-31b` |
-| Muse-Glimmer-30B | 8004 | `muse-glimmer-30b` |
-| gpt-oss-120b | 8005 | `gpt-oss-120b` |
-| Llama-3.3-70B-AWQ | 8006 | `llama-3.3-70b` |
-| Nemotron-3.5-Lightning | 8007 | `nemotron-3.5-lightning` |
+| Modelo | Puerto | `served-model-name` | Estado | Multimodal |
+|--------|--------|---------------------|--------|------------|
+| Qwen3.8-27B | 8000 | `qwen3-27b` | ✅ Funciona | Texto + **imagen** (ViT corre) |
+| gemma-4-31B | 8000 | `gemma-4-31b` | ✅ Funciona (**solo texto**) | ⚠️ Visión rota en gfx1151 → `--limit-mm-per-prompt '{"image":0,"video":0}'` |
+| Muse-Glimmer-30B | 8000 | `muse-glimmer-30b` | ✅ Funciona | Texto + **imagen** (ViT corre) |
+| gpt-oss-120b | 8000 | `gpt-oss-120b` | ⏳ Por probar | — |
+| Llama-3.3-70B-AWQ | 8000 | `llama-3.3-70b` | ⏳ Por probar | solo texto |
+| Nemotron-3.5-Lightning | 8000 | `nemotron-3.5-lightning` | ✅ Funciona (híbrido Mamba) | solo texto |
 
 > La iGPU sirve **un modelo grande a la vez** (comparten la misma memoria). Los puertos distintos permiten alternar sin chocar configuraciones.
+
+## Razonamiento (thinking) por modelo
+
+Cada familia activa el "thinking" distinto y expone el razonamiento en un campo distinto.
+Validado por API cruda (el campo `reasoning` no siempre lo mapea LangChain — ver abajo).
+
+| Modelo | Cómo activar el thinking | Campo del razonamiento |
+|--------|--------------------------|------------------------|
+| Qwen3.8-27B | por defecto (parser `qwen3`) | `reasoning_content` |
+| gemma-4-31B | `--default-chat-template-kwargs '{"enable_thinking": true}'` (parser `gemma4`) | `reasoning_content` |
+| Muse-Glimmer-30B | system prompt: `Reasoning strength: high` (`low`/`medium`/`high`/`xhigh`) | `reasoning` |
+| Nemotron-3.5-Lightning | por petición: `extra_body={"chat_template_kwargs": {"enable_thinking": true}}` | `reasoning` |
+
+**Leer el razonamiento desde un cliente:**
+- Con el **SDK de OpenAI** (robusto): `resp.choices[0].message.model_extra.get("reasoning")`.
+- Con **LangChain** `ChatOpenAI`: `r.additional_kwargs.get("reasoning")` **solo si** `langchain-openai` es reciente (versiones viejas descartan el campo `reasoning`; actualiza con `pip install -U langchain-openai` o usa el SDK de OpenAI directo).
