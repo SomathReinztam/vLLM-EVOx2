@@ -4,3 +4,4 @@
 # Temporales
 *.log
 __pycache__/
+.venv/
