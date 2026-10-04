@@ -30,11 +30,12 @@ services:
       - --gpu-memory-utilization
       - "0.75"
       - --trust-remote-code
-      # ⚠️ El encoder de VIDEO de Gemma 4 crashea en gfx1151 (hipErrorInvalidValue).
-      # Lo desactivamos (video=0) para que vLLM no lo perfile. Deja texto + imagen.
-      # Si la imagen también falla, usa {"image": 0, "video": 0} (solo texto).
+      # ⚠️ La torre de VISIÓN de Gemma 4 (imagen Y video) crashea en gfx1151
+      # (hipErrorInvalidValue en el layernorm del encoder, código de transformers).
+      # Desactivamos ambas → Gemma corre SOLO TEXTO (que sí usa el path nativo de
+      # vLLM y funciona). Para multimodal en esta EVO usa Qwen3.8-27B.
       - --limit-mm-per-prompt
-      - '{"video": 0}'
+      - '{"image": 0, "video": 0}'
       # Razonamiento + tool calling (formato Gemma 4, como en server0):
       - --reasoning-parser
       - gemma4
