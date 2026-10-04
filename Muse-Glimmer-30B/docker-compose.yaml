@@ -49,6 +49,7 @@ services:
     environment:
       - "PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True"
     # Token HF opcional (modelo abierto); se usa si HuggingFace pide autenticación.
+      - HUGGING_FACE_HUB_TOKEN=${HUGGING_FACE_HUB_TOKEN:-}
     env_file:
       - path: ../.env
         required: false
