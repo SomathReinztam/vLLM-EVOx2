@@ -70,6 +70,18 @@ docker compose down
 - Imagen base: [`kyuz0/vllm-therock-gfx1151`](https://github.com/kyuz0/amd-strix-halo-vllm-toolboxes)
   (trae ROCm "TheRock" + vLLM compilados para gfx1151).
 - `--gpu-memory-utilization` es el parámetro más delicado en memoria unificada; ajústalo según los logs.
+- **Visión multimodal frágil en gfx1151**: las torres de visión de algunos modelos
+  usan kernels que fallan en ROCm de consumo (`hipErrorInvalidValue` al perfilar el
+  encoder). Si pasa, se desactiva esa modalidad con `--limit-mm-per-prompt` y el
+  modelo queda de solo texto.
+
+## Estado multimodal por modelo
+
+| Modelo | Multimodal en la EVO |
+|--------|----------------------|
+| Qwen3.8-27B | ✅ Texto + **imagen** (su ViT sí corre) |
+| **gemma-4-31B** | ⚠️ **Solo texto** — la torre de visión (imagen Y video) crashea en gfx1151; se desactiva con `--limit-mm-per-prompt '{"image":0,"video":0}'` |
+| Muse-Glimmer-30B | ❓ Por confirmar |
 
 ## Tabla de puertos
 
