@@ -13,7 +13,7 @@ services:
     command:
       # ⚠️ Para chat + tools conviene la variante INSTRUCT. Si existe en HF, usa
       # "google/gemma-4-31B-it" en vez de la base. Verifica el nombre exacto.
-      - google/gemma-4-31B
+      - google/gemma-4-31B-it
       - --served-model-name
       - gemma-4-31b
       - --host
@@ -37,8 +37,8 @@ services:
       - --tool-call-parser
       - gemma4
       # Opcional: activar "thinking" por defecto en todas las peticiones.
-      # - --default-chat-template-kwargs
-      # - '{"enable_thinking": true}'
+      - --default-chat-template-kwargs
+      - '{"enable_thinking": true}'
     ports:
       - "8003:8000"
     devices:
@@ -54,6 +54,7 @@ services:
     environment:
       - "PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True"
     # Token HF OBLIGATORIO aquí (modelo gated): crea ../.env con HUGGING_FACE_HUB_TOKEN.
+      - HUGGING_FACE_HUB_TOKEN=${HUGGING_FACE_HUB_TOKEN:-}
     env_file:
       - path: ../.env
         required: true
