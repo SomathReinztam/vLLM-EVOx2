@@ -5,3 +5,6 @@
 *.log
 __pycache__/
 .venv/
+
+z1.py 
+z2.py 
