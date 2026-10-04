@@ -28,12 +28,13 @@ services:
       - --gpu-memory-utilization
       - "0.75"
       - --trust-remote-code
-      # Parsers (añadir tras validar la salida cruda; Nemotron suele tener "thinking"):
-      # - --reasoning-parser
-      # - deepseek_r1
-      # - --enable-auto-tool-choice
-      # - --tool-call-parser
-      # - hermes
+      # Razonamiento + tools (receta oficial de vLLM para Nemotron 3.5 Lightning).
+      # El "thinking" se activa/ajusta por chat template y presupuesto por petición.
+      - --enable-auto-tool-choice
+      - --tool-call-parser
+      - qwen3_coder
+      - --reasoning-parser
+      - nemotron_v3
     ports:
       - "8007:8000"
     devices:
