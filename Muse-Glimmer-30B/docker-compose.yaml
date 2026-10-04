@@ -1,0 +1,67 @@
+services:
+
+  # ── LLM: Muse-Glimmer-30B (multimodal, Meta) en la iGPU Radeon 8060S (gfx1151) ─
+  # Apache 2.0 (no gated). BF16 (~59 GiB de pesos); sin FP8. Trae encoder de visión.
+  # Arranca SIN parsers de razonamiento/tools: primero validamos y luego, según el
+  # formato que use el modelo, añadimos --reasoning-parser / --tool-call-parser.
+  # Puerto externo 8004. Modelo servido como "muse-glimmer-30b".
+  # ─────────────────────────────────────────────────────────────────────────────
+  vllm-llm:
+    image: docker.io/kyuz0/vllm-therock-gfx1151:latest
+    container_name: vllm-muse-glimmer-30b
+    entrypoint: ["vllm", "serve"]
+    command:
+      - meta-models/Muse-Glimmer-30B
+      - --served-model-name
+      - muse-glimmer-30b
+      - --host
+      - "0.0.0.0"
+      - --port
+      - "8000"
+      - --tensor-parallel-size
+      - "1"
+      - --max-model-len
+      - "32768"
+      - --max-num-seqs
+      - "4"
+      # ~59 GiB de pesos + KV; si da OOM, baja a 0.70.
+      - --gpu-memory-utilization
+      - "0.75"
+      - --trust-remote-code
+      # Parsers (añadir tras validar la salida cruda del modelo):
+      # - --reasoning-parser
+      # - deepseek_r1
+      # - --enable-auto-tool-choice
+      # - --tool-call-parser
+      # - hermes
+    ports:
+      - "8004:8000"
+    devices:
+      - /dev/kfd
+      - /dev/dri
+    group_add:
+      - video
+      - render
+    security_opt:
+      - seccomp:unconfined
+    ipc: host
+    shm_size: "16g"
+    environment:
+      - "PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True"
+    # Token HF opcional (modelo abierto); se usa si HuggingFace pide autenticación.
+    env_file:
+      - path: ../.env
+        required: false
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 40
+      start_period: 600s
+    restart: unless-stopped
+
+volumes:
+  hf-cache:
+    name: vllm-hf-cache
