@@ -1,0 +1,68 @@
+services:
+
+  # ── LLM: Llama 3.3 70B Instruct, cuantizado AWQ (INT4) en gfx1151 ─────────────
+  # AWQ INT4 (~38-40 GiB) → cabe holgado y deja MUCHO KV-cache. INT4 funciona en
+  # gfx1151 porque se descomprime a BF16 al vuelo (no necesita hardware FP8/FP4).
+  # Repo quant de la comunidad (NO gated): casperhansen/llama-3.3-70b-instruct-awq.
+  # Puerto externo 8006. Modelo servido como "llama-3.3-70b".
+  # ─────────────────────────────────────────────────────────────────────────────
+  vllm-llm:
+    image: docker.io/kyuz0/vllm-therock-gfx1151:latest
+    container_name: vllm-llama-3-3-70b
+    entrypoint: ["vllm", "serve"]
+    command:
+      - casperhansen/llama-3.3-70b-instruct-awq
+      - --served-model-name
+      - llama-3.3-70b
+      - --host
+      - "0.0.0.0"
+      - --port
+      - "8000"
+      - --tensor-parallel-size
+      - "1"
+      # Llama 3.3 soporta hasta 128k; con pesos de solo ~40 GiB hay KV de sobra,
+      # puedes subir este valor si quieres más contexto.
+      - --max-model-len
+      - "32768"
+      - --max-num-seqs
+      - "4"
+      - --gpu-memory-utilization
+      - "0.75"
+      # Cuantización INT4 (normalmente se autodetecta del config; explícito por claridad):
+      - --quantization
+      - awq
+      - --trust-remote-code
+      # Tool calling de Llama 3.3 (sin reasoning: no es un modelo "thinking"):
+      - --enable-auto-tool-choice
+      - --tool-call-parser
+      - llama3_json
+    ports:
+      - "8006:8000"
+    devices:
+      - /dev/kfd
+      - /dev/dri
+    group_add:
+      - video
+      - render
+    security_opt:
+      - seccomp:unconfined
+    ipc: host
+    shm_size: "16g"
+    environment:
+      - "PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True"
+    env_file:
+      - path: ../.env
+        required: false
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 40
+      start_period: 600s
+    restart: unless-stopped
+
+volumes:
+  hf-cache:
+    name: vllm-hf-cache

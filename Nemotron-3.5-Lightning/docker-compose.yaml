@@ -1,0 +1,66 @@
+services:
+
+  # ── LLM: NVIDIA Nemotron 3.5 Lightning 30B (MoE, 3B activos) en gfx1151 ────────
+  # Variante BF16 (~60 GiB). NO uses la variante -NVFP4: NVFP4 es FP4 de NVIDIA y
+  # necesita hardware NVIDIA, no funciona en gfx1151.
+  # ⚠️ Arquitectura híbrida (Mamba-2 + MoE + Attention) → requiere vLLM reciente;
+  # la imagen kyuz0 (vLLM 0.30+strix) debería soportarla, pero hay que confirmar.
+  # Puerto externo 8007. Modelo servido como "nemotron-3.5-lightning".
+  # ─────────────────────────────────────────────────────────────────────────────
+  vllm-llm:
+    image: docker.io/kyuz0/vllm-therock-gfx1151:latest
+    container_name: vllm-nemotron-3-5-lightning
+    entrypoint: ["vllm", "serve"]
+    command:
+      - nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16
+      - --served-model-name
+      - nemotron-3.5-lightning
+      - --host
+      - "0.0.0.0"
+      - --port
+      - "8000"
+      - --tensor-parallel-size
+      - "1"
+      - --max-model-len
+      - "32768"
+      - --max-num-seqs
+      - "4"
+      - --gpu-memory-utilization
+      - "0.75"
+      - --trust-remote-code
+      # Parsers (añadir tras validar la salida cruda; Nemotron suele tener "thinking"):
+      # - --reasoning-parser
+      # - deepseek_r1
+      # - --enable-auto-tool-choice
+      # - --tool-call-parser
+      # - hermes
+    ports:
+      - "8007:8000"
+    devices:
+      - /dev/kfd
+      - /dev/dri
+    group_add:
+      - video
+      - render
+    security_opt:
+      - seccomp:unconfined
+    ipc: host
+    shm_size: "16g"
+    environment:
+      - "PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True"
+    env_file:
+      - path: ../.env
+        required: false
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 40
+      start_period: 600s
+    restart: unless-stopped
+
+volumes:
+  hf-cache:
+    name: vllm-hf-cache

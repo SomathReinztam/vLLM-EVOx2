@@ -10,11 +10,12 @@ Cada modelo vive en su propia carpeta con un `docker-compose.yaml` independiente
 vLLM-EVOx2/
 ├── .env.example          # plantilla del token HF (cópiala a .env en la raíz)
 ├── .gitignore            # ignora .env
-├── Qwen3.8-27B/          # Qwen3.8-27B (denso, abierto)      → puerto 8002
-│   └── docker-compose.yaml
-├── gemma-4-31B/          # (pendiente) multimodal, gated     → puerto 8003
-├── Muse-Glimmer-30B/     # (pendiente) multimodal            → puerto 8004
-└── DeepSeek-V4-Flash/    # (pendiente) MoE 284B, requiere quant reducido → 8005
+├── Qwen3.8-27B/            # denso 27B, BF16, abierto          → 8002
+├── gemma-4-31B/            # multimodal 31B, BF16, gated       → 8003
+├── Muse-Glimmer-30B/       # multimodal 30B, BF16, abierto     → 8004
+├── gpt-oss-120b/           # MoE 117B, MXFP4 (experimental)    → 8005
+├── Llama-3.3-70B-AWQ/      # denso 70B, INT4 (AWQ)             → 8006
+└── Nemotron-3.5-Lightning/ # MoE 30B, BF16, híbrido Mamba      → 8007
 ```
 
 ## Requisitos del host (EVO-X2)
@@ -77,6 +78,8 @@ docker compose down
 | Qwen3.8-27B | 8002 | `qwen3-27b` |
 | gemma-4-31B | 8003 | `gemma-4-31b` |
 | Muse-Glimmer-30B | 8004 | `muse-glimmer-30b` |
-| DeepSeek-V4-Flash | 8005 | `deepseek-v4-flash` |
+| gpt-oss-120b | 8005 | `gpt-oss-120b` |
+| Llama-3.3-70B-AWQ | 8006 | `llama-3.3-70b` |
+| Nemotron-3.5-Lightning | 8007 | `nemotron-3.5-lightning` |
 
 > La iGPU sirve **un modelo grande a la vez** (comparten la misma memoria). Los puertos distintos permiten alternar sin chocar configuraciones.

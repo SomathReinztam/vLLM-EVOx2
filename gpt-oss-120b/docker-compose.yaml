@@ -1,0 +1,68 @@
+services:
+
+  # ── LLM: gpt-oss-120b (OpenAI, MoE 117B / 5.1B activos) en gfx1151 ────────────
+  # MXFP4 NATIVO (~60 GiB) → cabe en los 128 GB. NO lleva flag de cuantización:
+  # el formato viene en el propio modelo.
+  # ⚠️ EL MÁS EXPERIMENTAL: MXFP4 depende de kernels específicos; hay que confirmar
+  # que funcionen en gfx1151 con la imagen kyuz0. gpt-oss usa el formato "harmony"
+  # (razonamiento en canal propio); arrancamos mínimo y añadimos parsers tras validar.
+  # Puerto externo 8005. Modelo servido como "gpt-oss-120b".
+  # ─────────────────────────────────────────────────────────────────────────────
+  vllm-llm:
+    image: docker.io/kyuz0/vllm-therock-gfx1151:latest
+    container_name: vllm-gpt-oss-120b
+    entrypoint: ["vllm", "serve"]
+    command:
+      - openai/gpt-oss-120b
+      - --served-model-name
+      - gpt-oss-120b
+      - --host
+      - "0.0.0.0"
+      - --port
+      - "8000"
+      - --tensor-parallel-size
+      - "1"
+      - --max-model-len
+      - "32768"
+      - --max-num-seqs
+      - "4"
+      # ~60 GiB de pesos (MXFP4) + KV; si da OOM, baja a 0.70.
+      - --gpu-memory-utilization
+      - "0.75"
+      - --trust-remote-code
+      # Razonamiento/tools de gpt-oss (añadir tras validar la salida cruda):
+      # - --reasoning-parser
+      # - openai_gptoss
+      # - --enable-auto-tool-choice
+      # - --tool-call-parser
+      # - openai
+    ports:
+      - "8005:8000"
+    devices:
+      - /dev/kfd
+      - /dev/dri
+    group_add:
+      - video
+      - render
+    security_opt:
+      - seccomp:unconfined
+    ipc: host
+    shm_size: "16g"
+    environment:
+      - "PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True"
+    env_file:
+      - path: ../.env
+        required: false
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 40
+      start_period: 900s
+    restart: unless-stopped
+
+volumes:
+  hf-cache:
+    name: vllm-hf-cache

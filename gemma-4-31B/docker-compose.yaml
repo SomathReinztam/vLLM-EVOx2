@@ -30,6 +30,11 @@ services:
       - --gpu-memory-utilization
       - "0.75"
       - --trust-remote-code
+      # ⚠️ El encoder de VIDEO de Gemma 4 crashea en gfx1151 (hipErrorInvalidValue).
+      # Lo desactivamos (video=0) para que vLLM no lo perfile. Deja texto + imagen.
+      # Si la imagen también falla, usa {"image": 0, "video": 0} (solo texto).
+      - --limit-mm-per-prompt
+      - '{"video": 0}'
       # Razonamiento + tool calling (formato Gemma 4, como en server0):
       - --reasoning-parser
       - gemma4
