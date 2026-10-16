@@ -5,7 +5,7 @@ services:
   # necesita hardware NVIDIA, no funciona en gfx1151.
   # ⚠️ Arquitectura híbrida (Mamba-2 + MoE + Attention) → requiere vLLM reciente;
   # la imagen kyuz0 (vLLM 0.30+strix) debería soportarla, pero hay que confirmar.
-  # Puerto externo 8007. Modelo servido como "nemotron-3.5-lightning".
+  # Puerto externo 8000. Modelo servido como "nemotron-3.5-lightning".
   # ─────────────────────────────────────────────────────────────────────────────
   vllm-llm:
     image: docker.io/kyuz0/vllm-therock-gfx1151:latest
@@ -27,7 +27,7 @@ services:
       - --max-model-len
       - "262144"
       - --max-num-seqs
-      - "4"
+      - "2"
       - --gpu-memory-utilization
       - "0.75"
       - --trust-remote-code
