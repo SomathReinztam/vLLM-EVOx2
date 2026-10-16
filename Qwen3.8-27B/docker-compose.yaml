@@ -22,14 +22,14 @@ services:
       - --tensor-parallel-size
       - "1"
       - --max-model-len
-      - "32768"
+      - "131072"
       - --max-num-seqs
-      - "4"
+      - "2"
       # En memoria unificada este valor es delicado: vLLM "ve" 128 GB pero la RAM
       # es compartida con el sistema. 0.75 → pesos (~51 GiB) + KV (~42 GiB) deja
       # ~28 GiB de margen. Subir con cuidado si quieres más KV-cache.
       - --gpu-memory-utilization
-      - "0.75"
+      - "0.80"
       - --trust-remote-code
       # ── Razonamiento (thinking) ──────────────────────────────────────────────
       # NOTA: en vLLM reciente NO existe --enable-reasoning; basta el parser.
