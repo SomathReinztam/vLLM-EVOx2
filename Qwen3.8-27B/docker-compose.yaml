@@ -40,7 +40,8 @@ services:
       # Qwen usa formato Hermes para las llamadas a herramientas.
       - --enable-auto-tool-choice
       - --tool-call-parser
-      - hermes
+      # - hermes  # Con hermes, Qwen3.8 devuelve las tool calls como XML (<tool_call><function=…><parameter=…>) que vLLM no parsea
+      - qwen3_coder
     ports:
       - "8000:8000"
     # Acceso a la iGPU por ROCm (equivalente al bloque nvidia de server0):
